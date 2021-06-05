@@ -1,1 +1,1 @@
-simple stock prediction app that uses NN's
+Simple stock prediction app that uses NN's
