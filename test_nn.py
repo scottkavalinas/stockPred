@@ -1,4 +1,3 @@
-import yfinance
 import numpy as np
 import torch
 import torch.nn as nn
@@ -12,7 +11,7 @@ import torchvision.datasets as Set
 device = torch.device("cuda")
 
 Batch_size = 1 # train in batches
-epoch = 10   # amount of training iterations before testing
+epoch = 100   # amount of training iterations before testing
 
 price = 10.0
 earning = 100000.4
@@ -158,8 +157,8 @@ def validate_network(epoch):
       output = Fully_connected_EX(inputData)  #get output from the model
       validation_loss += criterion(output,targetPrice)
       prediction_label = output.data.max(0, keepdim=True)[0] #get prediction
-      print('Estimate : ' + str(prediction_label.data.item()*max_p2))
-      print('Target : ' + str(targetPrice.data.item()*max_p2))
+      #print('Estimate : ' + str(prediction_label.data.item()*max_p2))
+      #print('Target : ' + str(targetPrice.data.item()*max_p2))
       #add correct predictions
       correct += prediction_label.eq(targetPrice.data.view_as(prediction_label)).sum()
 
