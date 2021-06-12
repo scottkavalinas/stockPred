@@ -26,8 +26,13 @@ stock = {'initial Price':10.0,"earnings":100000.0, "expenses":110000.0,
 
 data = []
 
-for i in range(10000):
+test = []
+
+for i in range(100):
 	data.append({})
+
+for i in range(10):
+	test.append({})
 
 
 max_p1 = 0
@@ -38,6 +43,7 @@ max_r2=0
 max_r3=0
 max_p2=0
 for i in data:
+	#randomize and normalize fake data 
 	i['initial Price'] = stock['initial Price'] * random.randint(1,5)
 	if i['initial Price'] > max_p1:
 		max_p1= i['initial Price']
@@ -60,20 +66,51 @@ for i in data:
 	if i['Price 2'] > max_p2:
 		max_p2=i['Price 2']
 
+for i in test:
+	#randomize and normalize fake  test data 
+	i['initial Price'] = stock['initial Price'] * random.randint(1,5)
+	if i['initial Price'] > max_p1:
+		max_p1= i['initial Price']
+	i['earnings'] = stock['earnings'] * random.randint(1,5)
+	if i['earnings'] > max_earn:
+		max_earn=i['earnings']
+	i['expenses'] = stock['expenses'] * random.randint(1,5)
+	if i['expenses'] > max_exp:
+		max_exp=i['expenses']
+	i['ratio 1'] = stock['ratio 1'] * random.randint(1,5)
+	if i['ratio 1']> max_r1:
+		max_r1=i['ratio 1']
+	i['ratio 2'] = stock['ratio 2'] * random.randint(1,5)
+	if i['ratio 2'] > max_r2:
+		max_r2 = i['ratio 2'] 
+	i['ratio 3'] = stock['ratio 3'] * random.randint(1,5)
+	if i['ratio 3'] > max_r3:
+		max_r3=i['ratio 3']
+	i['Price 2'] = stock['Price 2'] * random.randint(1,5)
+	if i['Price 2'] > max_p2:
+		max_p2=i['Price 2']
+
+
 to_load=[]
 for i in data:
 	stock_tensor = (torch.tensor([i['initial Price']/max_p1,i['earnings']/max_earn,i['expenses']/max_exp,
 		i['ratio 1']/max_r1,i['ratio 2']/max_r2,i['ratio 3']/max_r3],dtype=torch.double),i['Price 2']/max_p2)	
 	to_load.append(stock_tensor)
 
+test_load = []
+for i in test:
+	stock_tensor = (torch.tensor([i['initial Price']/max_p1,i['earnings']/max_earn,i['expenses']/max_exp,
+		i['ratio 1']/max_r1,i['ratio 2']/max_r2,i['ratio 3']/max_r3],dtype=torch.double),i['Price 2']/max_p2)	
+	test_load.append(stock_tensor)
+
 price_2 = np.array([9.0])
 
-TV_split = [9000, 1000] 
+TV_split = [90, 10] 
 training_set, validation_set = random_split(to_load, TV_split) #create validation subset
 
 Training_DataLoader = D(training_set, batch_size = Batch_size, shuffle = True) #shuffle to randomize
 Validation_DataLoader = D(validation_set, batch_size = Batch_size, shuffle = True)
-
+Test_DataLoader	 =  D(test_load, batch_size = Batch_size, shuffle = True)
 
 class FullyConnectedNet(nn.Module):
   def __init__(self):
@@ -131,11 +168,27 @@ def validate_network(epoch):
     epoch, validation_loss, correct, setSize,
     100. * correct / setSize))
 
+def test_network():
+  Fully_connected_EX.eval()
+  validation_loss = 0
+  correct = 0
+  setSize = len(Test_DataLoader.dataset)
+  with torch.no_grad():
+    for inputData, targetPrice in (Test_DataLoader):
+      output = Fully_connected_EX(inputData)  
+      validation_loss += criterion(output,targetPrice)
+      predition_label = output.data.max(0, keepdim=True)[0]
+      correct += predition_label.eq(targetPrice.data.view_as(predition_label)).sum()
+
+  validation_loss /= setSize
+  print('\nTest set: \n Average loss: {:.8f} \n Accuracy: {}/{} ={:.2f}%\n'.format(
+    validation_loss, correct, setSize,
+    100. * correct / setSize))
 
 def run():
   validate_network(0)
   for i in range(1,epoch+1):
     train_network(i)
     validate_network(i)
-  #test_network()
+  test_network()
 run()
