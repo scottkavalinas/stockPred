@@ -11,7 +11,7 @@ import torchvision.datasets as Set
 device = torch.device("cuda")
 
 Batch_size = 1 # train in batches
-epoch = 100   # amount of training iterations before testing
+epoch = 10   # amount of training iterations before testing
 
 price = 10.0
 earning = 100000.4
