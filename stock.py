@@ -1,6 +1,10 @@
 import yfinance
 import numpy as np
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torchvision.transforms as T
+
 import random
 
 price = 10.0
@@ -25,9 +29,14 @@ for i in data:
 	i['ratio 2'] = stock['ratio 2'] * random.randint(1,5)
 	i['ratio 3'] = stock['ratio 3'] * random.randint(1,5)
 	i['Price 2'] = stock['Price 2'] * random.randint(1,5)
-	
 
-print(data)
+#stock_array = np.array(data[0]['initial Price'],float(data[0]['earnings']))
+
+#makeTensor = T.ToTensor() 
+
+stock_tensor = torch.tensor([data[0]['initial Price'],data[0]['earnings']])	
+
+print(stock_tensor)
 
 
 price_2 = np.array([9.0])
