@@ -26,7 +26,7 @@ stock = {'initial Price':10.0,"earnings":100000.0, "expenses":110000.0,
 
 data = []
 
-for i in range(100):
+for i in range(10000):
 	data.append({})
 
 
@@ -68,11 +68,11 @@ for i in data:
 
 price_2 = np.array([9.0])
 
-TV_split = [90, 10] 
+TV_split = [9000, 1000] 
 training_set, validation_set = random_split(to_load, TV_split) #create validation subset
 
-Training_DataLoader = D(training_set, batch_size = Batch_size, shuffle = False) #shuffle to randomize
-Validation_DataLoader = D(validation_set, batch_size = Batch_size, shuffle = False)
+Training_DataLoader = D(training_set, batch_size = Batch_size, shuffle = True) #shuffle to randomize
+Validation_DataLoader = D(validation_set, batch_size = Batch_size, shuffle = True)
 
 
 class FullyConnectedNet(nn.Module):
@@ -102,14 +102,12 @@ def train_network(epoch):
   Fully_connected_EX.train()
   for batchIndex, (inputData, targetPrice) in enumerate(Training_DataLoader):
     #send input and target to GPU
-    #inputData = inputData.to(device) 
-    #targetPrice = targetPrice.to(device)
     SGD_Optimizer.zero_grad() #compute gradient
     output = Fully_connected_EX(inputData) #get output from the model
     loss = criterion(output,targetPrice) 
     loss.backward() #Back Propogation
     SGD_Optimizer.step() # Update parameters
-    if batchIndex % log_interval == 0:
+    if batchIndex % log_interval == 1111110:
       print('Training Epoch: {}\n{:.0f}%  Complete\tLoss: {:.6f}'.format(
         epoch, 100. * batchIndex / setSize, loss.item()))
 
@@ -122,9 +120,11 @@ def validate_network(epoch):
     for inputData, targetPrice in (Validation_DataLoader):
       output = Fully_connected_EX(inputData)  #get output from the model
       validation_loss += criterion(output,targetPrice)
-      predition_label = output.data.max(1, keepdim=True)[1] #get prediction
+      prediction_label = output.data.max(0, keepdim=True)[0] #get prediction
+      print('Estimate : ' + str(prediction_label.data.item()*max_p2))
+      print('Target : ' + str(targetPrice.data.item()*max_p2))
       #add correct predictions
-      correct += predition_label.eq(targetPrice.data.view_as(predition_label)).sum()
+      correct += prediction_label.eq(targetPrice.data.view_as(prediction_label)).sum()
 
   validation_loss /= setSize
   print('\nValidation set: Training Epoch {}\n Average loss: {:.8f}\n Accuracy: {}/{}= {:.2f}%\n'.format(
@@ -136,6 +136,6 @@ def run():
   validate_network(0)
   for i in range(1,epoch+1):
     train_network(i)
-    #validate_network(i)
+    validate_network(i)
   #test_network()
 run()
