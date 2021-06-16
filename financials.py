@@ -12,7 +12,7 @@ class Data:
 	def __init__(self,filename):
 		self.filename = filename
 
-	def GetData(self):
+	def getData(self):
 		finList=[]
 		word= ''
 		wordFile = open(self.filename)
@@ -27,7 +27,7 @@ class Data:
 			for j in i:
 				if j.lower() in alpha:
 					x+=j
-			if counter < 5:
+			if counter < 50:
 				data_list.append(x)
 				counter +=1
 		return data_list
@@ -74,17 +74,22 @@ class FinData:
 
 	def getBalance(self):
 		for i in self.data:
-			print(i)
+			#print(i)
 			contain = {}
-			contain['name'] = i
+			
 			stock = base.TickerBase(i)
 			example = stock.get_balance_sheet(freq='quarterly')
-			print(example)
+			#print(example)
 			for j in example:
 				contain[str(j)] = []
-				for k in example[j]:
-					if k >0 and len(contain[str(j)])<25:
-						contain[str(j)].append(k)
+				
+				for attrib in ['Cash','Total Liab',
+					'Total Stockholder Equity','Other Current Liab','Total Assets',
+					'Other Liab','Treasury Stock','Other Assets',
+					'Total Current Liabilities','Other Stockholder Equity','Property Plant Equipment',
+					'Total Current Assets','Net Tangible Assets','Net Receivables',
+					'Accounts Payable']:
+					contain[str(j)].append(example[j][attrib])
 			self.quarterlies.append(contain)
 
 	def getPrices(self):
@@ -107,17 +112,15 @@ class FinData:
 							print(len(q[self.dates[d]+ " 00:00:00"]))
 							
 	def getQuarterlyData(self):
-		print(self.quarterlies)
+		#print(self.quarterlies)
 		return self.quarterlies
 
-data_list = Data('sp500.txt')
-data_list=data_list.GetData()
-findata = FinData(data_list)
-findata.dateIter()
-findata.getBalance()
-findata.getPrices()
-q = findata.getQuarterlyData()
+#data_list = Data('sp500.txt')
+#data_list=data_list.GetData()
+#findata = FinData(data_list)
+#findata.dateIter()
+#findata.getBalance()
+#findata.getPrices()
+#q = findata.getQuarterlyData()
 
-f = open("stockData.txt", "a")
-f.writelines(str(q))
-f.close()
+
