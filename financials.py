@@ -5,10 +5,32 @@ from yfinance import Tickers
 from yfinance import ticker
 from yfinance import tickers
 
-finList=['MSFT']
 
 
+class Data:
 
+	def __init__(self,filename):
+		self.filename = filename
+
+	def GetData(self):
+		finList=[]
+		word= ''
+		wordFile = open(self.filename)
+		for word in wordFile:
+			word = word.upper()
+			finList.append(word)
+		data_list = []
+		counter = 0
+		alpha = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+		for i in finList:
+			x=''
+			for j in i:
+				if j.lower() in alpha:
+					x+=j
+			if counter < 5:
+				data_list.append(x)
+				counter +=1
+		return data_list
 
 
 class FinData:
@@ -23,7 +45,6 @@ class FinData:
 	def dateIter(self):
 		day_temp = []
 		month_temp = []
-
 		for day_1 in self.days:
 			day_temp.append('0'+str(day_1))
 		day_temp.append('10')
@@ -47,57 +68,56 @@ class FinData:
 					if int(day_temp[i]) > 30 and (month == '04' or month == '06' or month == '10' or month == '11'):
 						continue
 					date = year +month+'-' + day_temp[i]
-					#"Timestamp('"+date+ " 00:00:00'):"
 					if date not in self.dates:
 						self.dates.append(date)		
 
 
 	def getBalance(self):
 		for i in self.data:
+			print(i)
 			contain = {}
 			contain['name'] = i
 			stock = base.TickerBase(i)
-			#print(stock.get_balance_sheet(freq='quarterly'))
 			example = stock.get_balance_sheet(freq='quarterly')
+			print(example)
 			for j in example:
 				contain[str(j)] = []
 				for k in example[j]:
 					if k >0 and len(contain[str(j)])<25:
 						contain[str(j)].append(k)
 			self.quarterlies.append(contain)
-		#print(self.quarterlies)
 
-	'2021-03-31 00:00:00'
-	'2020-12-31 00:00:00'
-	'2020-09-30 00:00:00'
-	'2020-06-30 00:00:00'
 	def getPrices(self):
 		for d in range(len(self.dates)):
 			for q in self.quarterlies:
-				#print(q.keys())
 				if self.dates[d]+ " 00:00:00" in q.keys():
-
 					for i in self.data:
 						stock = base.TickerBase(i)
-						period = stock.history(period='1d',interval="1d",start = self.dates[d])
-						#print(len(q[self.dates[d]+ " 00:00:00"]))
-						if len(q[self.dates[d]+ " 00:00:00"])<26:
+						period = stock.history(period='1d',interval="1d",start = self.dates[d],end=self.dates[d+3])
+						if len(q[self.dates[d]+ " 00:00:00"])<27:
 							for h in period['Close'].keys():
 								price_1 = period['Close'][h]
-							q[self.dates[d]+ " 00:00:00"].append(("P1",price_1))
-							#adding 5 will always land on a trading day
-							period_2 = stock.history(period='1d',interval="1d",start = self.dates[d+5])
+							if type(q[self.dates[d]+ " 00:00:00"][-1]) != tuple:
+								q[self.dates[d]+ " 00:00:00"].append(("P1",price_1))							
+							period_2 = stock.history(period='1d',interval="1d",start = self.dates[d+3],end=self.dates[d+4])
 							for h in period_2['Close'].keys():
 								price_2 = period_2['Close'][h]
-							q[self.dates[d]+ " 00:00:00"].append(("P2",price_2))
-		print(self.quarterlies)
+							if q[self.dates[d]+ " 00:00:00"][-1][0] != 'P2':
+								q[self.dates[d]+ " 00:00:00"].append(("P2",price_2))
+							print(len(q[self.dates[d]+ " 00:00:00"]))
 							
+	def getQuarterlyData(self):
+		print(self.quarterlies)
+		return self.quarterlies
 
-
-
-
-findata = FinData(finList)
-findata.getBalance()
+data_list = Data('sp500.txt')
+data_list=data_list.GetData()
+findata = FinData(data_list)
 findata.dateIter()
-
+findata.getBalance()
 findata.getPrices()
+q = findata.getQuarterlyData()
+
+f = open("stockData.txt", "a")
+f.writelines(str(q))
+f.close()

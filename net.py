@@ -8,7 +8,6 @@ from torch.utils.data import DataLoader as D
 from torch.utils.data import random_split
 import torch.optim as optim
 import torchvision.datasets as Set
-device = torch.device("cuda")
 
 Batch_size = 1 # train in batches
 epoch = 10   # amount of training iterations before testing
