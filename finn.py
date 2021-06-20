@@ -22,12 +22,18 @@ findata.dateIter()
 findata.getBalance()
 q = findata.getQuarterlyData()
 
+maxVal= 100000000000
+
 to_load = []
 for i in q:
   temp = []
   for key in i.keys():
     temp.append(i[key])
+  for j in range(len(temp)):
+    for k in range(len(temp[j])):
 
+      temp[j][k] = float(temp[j][k]/maxVal) 
+      #print(temp[j][k])
   to_load.append((torch.tensor(np.array([temp[0],temp[1],temp[2]])),np.array(temp[3])))
 
 TV_split = [45, 5] 
@@ -44,12 +50,17 @@ class FullyConnectedNet(nn.Module):
   def __init__(self):
     super(FullyConnectedNet, self).__init__() 
     self.FC_Layer_1 = nn.Linear(45, 15)
-    self.double()
+    #print(self.FC_Layer_1)
+    #self.float()
   
   def forward(self,x):
+    x=x.float()
+    
     x = x.view(x.size(0), -1)#Flatten
     x = torch.sigmoid(self.FC_Layer_1(x)) #Activation Function
-    return x.double()
+    
+    #print(x)
+    return x.float()
 
 Fully_connected_EX = FullyConnectedNet()
 learning_rate_SGD = 0.001
@@ -59,14 +70,15 @@ SGD_Optimizer = optim.SGD(Fully_connected_EX.parameters(),
 lr = learning_rate_SGD, momentum = momentum_SGD)
 
 criterion = nn.MSELoss()
-
 def train_network(epoch):
   setSize = len(Training_DataLoader)
   Fully_connected_EX.train()
   for batchIndex, (inputData, targetPrice) in enumerate(Training_DataLoader):
     #send input and target to GPU
     SGD_Optimizer.zero_grad() #compute gradient
-    output = Fully_connected_EX(inputData) #get output from the model
+    output = Fully_connected_EX(inputData).float() #get output from the model
+    output= output.float()
+    targetPrice =targetPrice.float()
     loss = criterion(output,targetPrice) 
     loss.backward() #Back Propogation
     SGD_Optimizer.step() # Update parameters
@@ -81,8 +93,28 @@ def validate_network(epoch):
   setSize = len(Validation_DataLoader.dataset)
   with torch.no_grad():
     for inputData, targetPrice in (Validation_DataLoader):
-      output = Fully_connected_EX(inputData)  #get output from the model
-      print(output)
+      inputData = inputData.float()
+      targetPrice = targetPrice.float()
+      print(targetPrice)
+      output = Fully_connected_EX(inputData)*maxVal  #get output from the model
+      #print(output)
+      
+      print("Cash:                      $" +str(output[0][0].item()))
+      print("Total Liabilities:         $"+str(output[0][1].item()))
+      print("Total Sotckholder Equity:  $"+str(output[0][2].item()))
+      print("Other Current Liabilities: $"+str(output[0][3].item()))
+      print("Total Assets:              $"+str(output[0][4].item()))
+      print("Other Liab:                $"+str(output[0][5].item()))
+      print("Treasury Stock:            $"+str(output[0][6].item()))
+      print("Other Assets:              $"+str(output[0][7].item()))
+      print("Total Current Liabilities: $"+str(output[0][8].item()))
+      print("Other Stockholder Equity:  $"+str(output[0][9].item()))
+      print("Property Plant Equipment:  $"+str(output[0][10].item()))
+      print("Total Current Assets:      $"+str(output[0][11].item()))
+      print("Net Tangible Assets:       $"+str(output[0][12].item()))
+      print("Net Receivables:           $"+str(output[0][13].item()))
+      print("Accounts Payable:          $"+str(output[0][14].item()))
+      print()
       validation_loss += criterion(output,targetPrice)
       prediction_label =''
       #prediction_label = output.data.item()
@@ -104,7 +136,7 @@ def test_network():
     for inputData, targetPrice in (Test_DataLoader):
       output = Fully_connected_EX(inputData)  
       validation_loss += criterion(output,targetPrice)
-      predition_label = output.data.max(0, keepdim=True)[0]
+      predition_label = output.data.max(0, keepdim=True)[0]*maxVal
       correct += predition_label.eq(targetPrice.data.view_as(predition_label)).sum()
 
   validation_loss /= setSize

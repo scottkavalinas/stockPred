@@ -74,12 +74,12 @@ class FinData:
 
 	def getBalance(self):
 		for i in self.data:
-			#print(i)
+			#print("Stock: " + str(i))
 			contain = {}
 			
 			stock = base.TickerBase(i)
 			example = stock.get_balance_sheet(freq='quarterly')
-			#print(example)
+			print(example)
 			for j in example:
 				contain[str(j)] = []
 				
@@ -89,7 +89,7 @@ class FinData:
 					'Total Current Liabilities','Other Stockholder Equity','Property Plant Equipment',
 					'Total Current Assets','Net Tangible Assets','Net Receivables',
 					'Accounts Payable']:
-					contain[str(j)].append(example[j][attrib])
+					contain[str(j)].append(int(example[j][attrib]))
 			self.quarterlies.append(contain)
 
 	def getPrices(self):
